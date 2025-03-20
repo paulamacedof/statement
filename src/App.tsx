@@ -205,7 +205,7 @@ function App({ accountId }: AppProps | any) {
   };
 
   return (
-    <section className="col-span-1 bg-[#004D61] rounded-lg p-6 w-full lg:max-w-[670px]">
+    <section className="col-span-1 bg-[#004D61] rounded-lg p-6 w-full lg:max-h-[500px] lg:max-w-[670px]">
       <h2 className="text-white mb-6">Extrato</h2>
 
       {statements.length === 0 ? (
@@ -213,7 +213,7 @@ function App({ accountId }: AppProps | any) {
           Nenhuma transação cadastrada.
         </p>
       ) : (
-        <ul className="overflow-y-auto bg-white rounded-lg max-h-[630px] lg:max-h-[670px]">
+        <ul className="overflow-y-auto bg-white  rounded-lg max-h-[630px] lg:max-h-[360px]">
           {statements?.map((statements) => (
             <li
               key={statements.id}
