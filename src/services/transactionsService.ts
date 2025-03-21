@@ -17,3 +17,24 @@ export const getTransactions = async (
     throw error;
   }
 };
+
+export const deleteTransaction = async (
+  token: string,
+  accountId: string,
+  transactionId: string
+) => {
+  try {
+    await api.delete(`account/transaction`, {
+      params: {
+        accountId,
+        transactionId,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    throw error;
+  }
+};

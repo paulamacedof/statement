@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { getTransactions } from "./services/transactionsService";
+import {
+  deleteTransaction,
+  getTransactions,
+} from "./services/transactionsService";
 import { Modal } from "./components/Modal";
 import { AddTransactionForm } from "./components/AddTransactionForm";
 import { Button } from "./components/Button";
@@ -9,8 +12,6 @@ import { TransactionResponse, TransactionType } from "./models/transactions";
 
 interface AppProps {
   accountId: string;
-
-  getTransactions: (transactions: TransactionResponse[]) => void;
 }
 
 function getMonthName(dateString: string): string {
@@ -51,20 +52,19 @@ function App({ accountId }: AppProps | any) {
   }, [accountId, token]);
 
   const openEditModal = (transaction: TransactionResponse) => {
-    setEditingTransaction(transaction);
     setIsEditModalOpen(true);
   };
-  const closeEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingTransaction(null);
-  };
-  const openDeleteModal = (transaction: TransactionResponse) => {
+
+  const openDeleteModal = async (transaction: TransactionResponse) => {
     setEditingTransaction(transaction);
     setIsDeleteModalOpen(true);
   };
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false);
+
+  const handleDeleteTransaction = async (transaction: TransactionResponse) => {
+    await deleteTransaction(token as string, accountId, transaction.id);
+    setTransactions(transactions.filter((t) => t.id !== transaction.id));
     setEditingTransaction(null);
+    setIsDeleteModalOpen(false);
   };
 
   return (
@@ -118,7 +118,7 @@ function App({ accountId }: AppProps | any) {
         </ul>
       )}
 
-      <Modal isOpen={isEditModalOpen} onClose={closeEditModal}>
+      {/* <Modal isOpen={isEditModalOpen} onClose={closeEditModal}>
         {editingTransaction && (
           <AddTransactionForm
             initialType={editingTransaction.type as TransactionType}
@@ -141,16 +141,19 @@ function App({ accountId }: AppProps | any) {
             }}
           />
         )}
-      </Modal>
+      </Modal> */}
 
-      <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
         {editingTransaction && (
           <>
             <h2 className="mb-8">Deletar Transação</h2>
             <p className="rounded-md p-1 mb-8">
               Esta ação irá excluir definitivamente a transação de{" "}
               <span className="font-semibold capitalize">
-                {/* {getTransactionName(editingTransaction.type)} */}
+                {getTransactionName(editingTransaction.type)}
               </span>{" "}
               de{" "}
               <span className="font-semibold">
@@ -162,20 +165,13 @@ function App({ accountId }: AppProps | any) {
             <div className="flex justify-between">
               <Button
                 variant="tertiary"
-                onClick={() => {
-                  closeDeleteModal();
-                }}
+                onClick={() => setIsDeleteModalOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 variant="primary"
-                onClick={() => {
-                  // transactionService.deleteTransaction(editingTransaction.id);
-                  // refreshData();
-                  // toast.success("Transação excluída com sucesso!");
-                  // closeDeleteModal();
-                }}
+                onClick={() => handleDeleteTransaction(editingTransaction)}
               >
                 Deletar
               </Button>
