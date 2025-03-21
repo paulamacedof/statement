@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { getStatement } from "./services/statementService";
-import { StatementResponse, StatementType } from "./models/statement";
+import { getTransactions } from "./services/transactionsService";
 import { Modal } from "./components/Modal";
 import { AddTransactionForm } from "./components/AddTransactionForm";
 import { Button } from "./components/Button";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { formatCurrency } from "./utils/formatCurrency";
+import { TransactionResponse, TransactionType } from "./models/transactions";
 
 interface AppProps {
   accountId: string;
+
+  getTransactions: (transactions: TransactionResponse[]) => void;
 }
 
 function getMonthName(dateString: string): string {
@@ -27,167 +29,28 @@ function getTransactionName(transaction: string | undefined) {
 }
 
 function App({ accountId }: AppProps | any) {
-  const [statements, setStatements] = useState<any[]>([]);
+  const token = localStorage.getItem("token");
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
-    useState<StatementResponse | null>(null);
+    useState<TransactionResponse | null>(null);
+
+  const [transactions, setTransactions] = useState<TransactionResponse[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    async function handleGetTransactions() {
+      if (accountId) {
+        const transactions = await getTransactions(token as string, accountId);
 
-    async function handleGetStatement() {
-      // const statements = await getStatement(token as string, accountId);
-      const statements = [
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-        {
-          id: "67d807ddb428649f44d1f54b",
-          accountId: "67d5cb96f273c147ae3b0269",
-          type: "Debit",
-          value: -200,
-          date: "2025-03-17T11:30:37.701Z",
-        },
-      ];
-      setStatements(statements);
+        setTransactions(transactions);
+      }
     }
 
-    handleGetStatement();
-  }, [accountId]);
+    handleGetTransactions();
+  }, [accountId, token]);
 
-  const openEditModal = (transaction: StatementResponse) => {
+  const openEditModal = (transaction: TransactionResponse) => {
     setEditingTransaction(transaction);
     setIsEditModalOpen(true);
   };
@@ -195,7 +58,7 @@ function App({ accountId }: AppProps | any) {
     setIsEditModalOpen(false);
     setEditingTransaction(null);
   };
-  const openDeleteModal = (transaction: StatementResponse) => {
+  const openDeleteModal = (transaction: TransactionResponse) => {
     setEditingTransaction(transaction);
     setIsDeleteModalOpen(true);
   };
@@ -208,32 +71,32 @@ function App({ accountId }: AppProps | any) {
     <section className="col-span-1 bg-[#004D61] rounded-lg p-6 w-full lg:max-h-[500px] lg:max-w-[670px]">
       <h2 className="text-white mb-6">Extrato</h2>
 
-      {statements.length === 0 ? (
+      {transactions.length === 0 ? (
         <p className="text-center text-background">
           Nenhuma transação cadastrada.
         </p>
       ) : (
-        <ul className="overflow-y-auto bg-white  rounded-lg max-h-[630px] lg:max-h-[360px]">
-          {statements?.map((statements) => (
+        <ul className="overflow-y-auto bg-white  rounded-lg max-h-[630px] lg:max-h-[400px]">
+          {transactions?.map((transaction: TransactionResponse) => (
             <li
-              key={statements.id}
+              key={transaction.id}
               className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 border-dashed border-b-2 border-[#47A138] rounded-lg p-3"
             >
               <span className="text-[#47A138] text-sm font-semibold capitalize">
-                {getMonthName(statements.date.toString())}
+                {getMonthName(transaction.date.toString())}
               </span>
               <p className="flex justify-between items-center gap-4 capitalize">
-                {getTransactionName(statements.type)}
+                {getTransactionName(transaction.type)}
                 <span className="text-gray-400 text-sm">
-                  {new Date(statements.date).toLocaleDateString("pt-BR", {
+                  {new Date(transaction.date).toLocaleDateString("pt-BR", {
                     timeZone: "UTC",
                   })}
                 </span>
               </p>
 
               <p className="font-roboto-mono font-semibold break-all">
-                {["transfer", "expense"].includes(statements.type) && "- "}
-                {formatCurrency(statements.value)}
+                {["transfer", "expense"].includes(transaction.type) && "- "}
+                {formatCurrency(transaction.value)}
               </p>
 
               <div className="flex gap-4 text-lg ml-auto">
@@ -241,13 +104,13 @@ function App({ accountId }: AppProps | any) {
                   className="text-green-500 transition hover:text-green-400"
                   title="Editar"
                   role="button"
-                  onClick={() => openEditModal(statements)}
+                  onClick={() => openEditModal(transaction)}
                 />
                 <FaTrash
                   className="text-red-500 transition hover:text-red-400"
                   title="Deletar"
                   role="button"
-                  onClick={() => openDeleteModal(statements)}
+                  onClick={() => openDeleteModal(transaction)}
                 />
               </div>
             </li>
@@ -258,7 +121,7 @@ function App({ accountId }: AppProps | any) {
       <Modal isOpen={isEditModalOpen} onClose={closeEditModal}>
         {editingTransaction && (
           <AddTransactionForm
-            initialType={editingTransaction.type as StatementType}
+            initialType={editingTransaction.type as TransactionType}
             initialAmount={editingTransaction.value}
             initialDate={
               new Date(editingTransaction.date).toISOString().split("T")[0]

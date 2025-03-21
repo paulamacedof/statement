@@ -1,10 +1,10 @@
-import { StatementResponse } from "@/models/statement";
+import { TransactionResponse } from "@/models/transactions";
 import api from "./axios";
 
-export const getStatement = async (
+export const getTransactions = async (
   token: string,
   accountId: string
-): Promise<StatementResponse[]> => {
+): Promise<TransactionResponse[]> => {
   try {
     const request = await api.get(`account/${accountId}/statement`, {
       headers: {

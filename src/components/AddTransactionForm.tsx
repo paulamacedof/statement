@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { NumericFormat } from "react-number-format";
 import { Button } from "./Button";
-import { StatementType } from "@/models/statement";
+import { TransactionType } from "@/models/transactions";
 
 interface AddTransactionFormProps {
-  initialType?: StatementType | "";
+  initialType?: TransactionType | "";
   initialAmount?: number;
   initialDate?: string;
   onSubmit: (transaction: {
-    type: StatementType;
+    type: TransactionType;
     amount: number;
     date: string;
   }) => void;
@@ -24,14 +24,14 @@ export function AddTransactionForm({
   title = "Adicionar Nova Transação",
   buttonText = "Criar Transação",
 }: AddTransactionFormProps) {
-  const [type, setType] = useState<StatementType | "">(initialType);
+  const [type, setType] = useState<TransactionType | "">(initialType);
   const [amount, setAmount] = useState<string>(initialAmount.toString());
   const [date, setDate] = useState<string>(initialDate);
   const isDisabled = parseFloat(amount) <= 0 || type === "";
 
   const handleSubmit = () => {
     onSubmit({
-      type: type as StatementType,
+      type: type as TransactionType,
       amount: parseFloat(amount),
       date,
     });
@@ -49,7 +49,7 @@ export function AddTransactionForm({
       <form onSubmit={(e) => e.preventDefault()}>
         <select
           value={type}
-          onChange={(e) => setType(e.target.value as StatementType)}
+          onChange={(e) => setType(e.target.value as TransactionType)}
           className="w-full p-4 border border-[#004D61] rounded-lg mb-8 appearance-none bg-select-arrow bg-no-repeat bg-right"
           title="Selecione o tipo de transação"
         >
