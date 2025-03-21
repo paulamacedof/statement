@@ -1,4 +1,4 @@
-import { TransactionResponse } from "@/models/transactions";
+import { TransactionRequest, TransactionResponse } from "@/models/transactions";
 import api from "./axios";
 
 export const getTransactions = async (
@@ -35,6 +35,23 @@ export const deleteTransaction = async (
     });
   } catch (error) {
     console.error("Error deleting transaction:", error);
+    throw error;
+  }
+};
+
+export const updateTransaction = async (
+  token: string,
+  transationId: string,
+  payload: TransactionRequest
+) => {
+  try {
+    await api.put(`account/transaction/${transationId}`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating transaction:", error);
     throw error;
   }
 };

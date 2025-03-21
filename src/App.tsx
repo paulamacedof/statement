@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import {
   deleteTransaction,
   getTransactions,
+  updateTransaction,
 } from "./services/transactionsService";
 import { Modal } from "./components/Modal";
 import { AddTransactionForm } from "./components/AddTransactionForm";
 import { Button } from "./components/Button";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { formatCurrency } from "./utils/formatCurrency";
-import { TransactionResponse, TransactionType } from "./models/transactions";
+import {
+  TransactionRequest,
+  TransactionResponse,
+  TransactionType,
+} from "./models/transactions";
 
 interface AppProps {
   accountId: string;
@@ -52,6 +57,7 @@ function App({ accountId }: AppProps | any) {
   }, [accountId, token]);
 
   const openEditModal = (transaction: TransactionResponse) => {
+    setEditingTransaction(transaction);
     setIsEditModalOpen(true);
   };
 
@@ -65,6 +71,28 @@ function App({ accountId }: AppProps | any) {
     setTransactions(transactions.filter((t) => t.id !== transaction.id));
     setEditingTransaction(null);
     setIsDeleteModalOpen(false);
+  };
+
+  const handleUpdateTransaction = async (transaction: TransactionRequest) => {
+    const payload = {
+      type: transaction.type,
+      value: transaction.value,
+      accountId,
+    };
+
+    setTransactions(
+      transactions.map((t) =>
+        t.id === editingTransaction?.id ? { ...t, ...payload } : t
+      )
+    );
+
+    await updateTransaction(
+      token as string,
+      editingTransaction?.id as string,
+      payload
+    );
+    setEditingTransaction(null);
+    setIsEditModalOpen(false);
   };
 
   return (
@@ -118,30 +146,23 @@ function App({ accountId }: AppProps | any) {
         </ul>
       )}
 
-      {/* <Modal isOpen={isEditModalOpen} onClose={closeEditModal}>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         {editingTransaction && (
           <AddTransactionForm
             initialType={editingTransaction.type as TransactionType}
             initialAmount={editingTransaction.value}
-            initialDate={
-              new Date(editingTransaction.date).toISOString().split("T")[0]
-            }
             title="Editar Transação"
             buttonText="Salvar Alterações"
-            onSubmit={(transaction) => {
-              // transactionService.updateTransaction(
-              //   editingTransaction.id,
-              //   transaction.type,
-              //   transaction.amount,
-              //   new Date(transaction.date)
-              // );
-              // refreshData();
-              // toast.success("Transação editada com sucesso!");
-              // closeEditModal();
-            }}
+            onSubmit={(transaction) =>
+              handleUpdateTransaction({
+                ...transaction,
+                accountId,
+                value: transaction.amount,
+              })
+            }
           />
         )}
-      </Modal> */}
+      </Modal>
 
       <Modal
         isOpen={isDeleteModalOpen}
