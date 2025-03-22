@@ -14,9 +14,12 @@ import {
   TransactionResponse,
   TransactionType,
 } from "./models/transactions";
+import { AccountResponse } from "./models/account";
+import { toast, Toaster } from "sonner";
+import { Piechart } from "./components/Piechart";
 
 interface AppProps {
-  accountId: string;
+  account: AccountResponse;
 }
 
 function getMonthName(dateString: string): string {
@@ -28,15 +31,16 @@ function getTransactionName(transaction: string | undefined) {
   if (!transaction) return "";
 
   const transactionMap = new Map([
-    ["Debit", "débito"],
+    ["Debit", "Débito"],
     ["Credit", "Crédito"],
   ]);
   return transactionMap.get(transaction);
 }
 
-function App({ accountId }: AppProps | any) {
+function App({ account }: AppProps | any) {
   const token = localStorage.getItem("token");
 
+  const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
@@ -46,15 +50,20 @@ function App({ accountId }: AppProps | any) {
 
   useEffect(() => {
     async function handleGetTransactions() {
-      if (accountId) {
-        const transactions = await getTransactions(token as string, accountId);
+      if (!account?.id) return;
 
+      try {
+        const transactions = await getTransactions(token as string, account.id);
         setTransactions(transactions);
+      } catch (error) {
+        toast.error("Falha ao buscar transações.");
+      } finally {
+        setLoading(false);
       }
     }
 
     handleGetTransactions();
-  }, [accountId, token]);
+  }, [account?.id, token]);
 
   const openEditModal = (transaction: TransactionResponse) => {
     setEditingTransaction(transaction);
@@ -67,84 +76,103 @@ function App({ accountId }: AppProps | any) {
   };
 
   const handleDeleteTransaction = async (transaction: TransactionResponse) => {
-    await deleteTransaction(token as string, accountId, transaction.id);
-    setTransactions(transactions.filter((t) => t.id !== transaction.id));
-    setEditingTransaction(null);
-    setIsDeleteModalOpen(false);
+    setLoading(true);
+    try {
+      await deleteTransaction(token as string, account.id, transaction.id);
+      setTransactions(transactions.filter((t) => t.id !== transaction.id));
+      toast.success("Transação excluída com sucesso!");
+      setEditingTransaction(null);
+    } catch (error) {
+      toast.error("Falha ao excluir transação.");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setLoading(false);
+    }
   };
 
   const handleUpdateTransaction = async (transaction: TransactionRequest) => {
-    const payload = {
-      type: transaction.type,
-      value: transaction.value,
-      accountId,
-    };
+    try {
+      const payload = {
+        type: transaction.type,
+        value: transaction.value,
+        accountId: account.id,
+      };
 
-    setTransactions(
-      transactions.map((t) =>
-        t.id === editingTransaction?.id ? { ...t, ...payload } : t
-      )
-    );
+      setTransactions(
+        transactions.map((t) =>
+          t.id === editingTransaction?.id ? { ...t, ...payload } : t
+        )
+      );
 
-    await updateTransaction(
-      token as string,
-      editingTransaction?.id as string,
-      payload
-    );
-    setEditingTransaction(null);
-    setIsEditModalOpen(false);
+      await updateTransaction(
+        token as string,
+        editingTransaction?.id as string,
+        payload
+      );
+      toast.success("Transação atualizada com sucesso!");
+    } catch (error) {
+      toast.error("Falha ao atualizar transação.");
+    } finally {
+      setEditingTransaction(null);
+      setIsEditModalOpen(false);
+    }
   };
 
   return (
-    <section className="col-span-1 bg-[#004D61] rounded-lg p-6 w-full lg:max-h-[500px] lg:max-w-[670px]">
-      <h2 className="text-white mb-6">Extrato</h2>
-
-      {transactions.length === 0 ? (
-        <p className="text-center text-background">
-          Nenhuma transação cadastrada.
-        </p>
-      ) : (
-        <ul className="overflow-y-auto bg-white  rounded-lg max-h-[630px] lg:max-h-[400px]">
-          {transactions?.map((transaction: TransactionResponse) => (
-            <li
-              key={transaction.id}
-              className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 border-dashed border-b-2 border-[#47A138] rounded-lg p-3"
-            >
-              <span className="text-[#47A138] text-sm font-semibold capitalize">
-                {getMonthName(transaction.date.toString())}
-              </span>
-              <p className="flex justify-between items-center gap-4 capitalize">
-                {getTransactionName(transaction.type)}
-                <span className="text-gray-400 text-sm">
-                  {new Date(transaction.date).toLocaleDateString("pt-BR", {
-                    timeZone: "UTC",
-                  })}
+    <section className="flex flex-col lg:flex-row lg:max-h-[500px] gap-6 w-full max-w-7xl">
+      <section className="flex flex-col bg-[#004D61] w-full rounded-lg p-10 md:p-6">
+        <h2 className="text-white mb-6">Extrato</h2>
+        {loading ? (
+          <p className="text-gray-400">Carregando extrato...</p>
+        ) : transactions && transactions.length === 0 ? (
+          <p className="text-center text-background">
+            Nenhuma transação cadastrada.
+          </p>
+        ) : (
+          <ul className="overflow-y-auto bg-white  rounded-lg max-h-[630px] lg:max-h-[400px]">
+            {transactions?.map((transaction: TransactionResponse) => (
+              <li
+                key={transaction.id}
+                className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 border-dashed border-b-2 border-[#47A138] rounded-lg p-3"
+              >
+                <span className="text-[#47A138] text-sm font-semibold capitalize">
+                  {getMonthName(transaction.date.toString())}
                 </span>
-              </p>
+                <p className="flex justify-between items-center gap-4 capitalize">
+                  {getTransactionName(transaction.type)}
+                  <span className="text-gray-400 text-sm">
+                    {new Date(transaction.date).toLocaleDateString("pt-BR", {
+                      timeZone: "UTC",
+                    })}
+                  </span>
+                </p>
 
-              <p className="font-roboto-mono font-semibold break-all">
-                {["transfer", "expense"].includes(transaction.type) && "- "}
-                {formatCurrency(transaction.value)}
-              </p>
+                <p className="font-roboto-mono font-semibold break-all">
+                  {["transfer", "expense"].includes(transaction.type) && "- "}
+                  {formatCurrency(transaction.value)}
+                </p>
 
-              <div className="flex gap-4 text-lg ml-auto">
-                <FaEdit
-                  className="text-green-500 transition hover:text-green-400"
-                  title="Editar"
-                  role="button"
-                  onClick={() => openEditModal(transaction)}
-                />
-                <FaTrash
-                  className="text-red-500 transition hover:text-red-400"
-                  title="Deletar"
-                  role="button"
-                  onClick={() => openDeleteModal(transaction)}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                <div className="flex gap-4 text-lg ml-auto">
+                  <FaEdit
+                    className="text-green-500 transition hover:text-green-400"
+                    title="Editar"
+                    role="button"
+                    onClick={() => openEditModal(transaction)}
+                  />
+                  <FaTrash
+                    className="text-red-500 transition hover:text-red-400"
+                    title="Deletar"
+                    role="button"
+                    onClick={() => openDeleteModal(transaction)}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Piechart transactions={transactions} loading={loading} />
 
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         {editingTransaction && (
@@ -156,14 +184,13 @@ function App({ accountId }: AppProps | any) {
             onSubmit={(transaction) =>
               handleUpdateTransaction({
                 ...transaction,
-                accountId,
+                accountId: account.id,
                 value: transaction.amount,
               })
             }
           />
         )}
       </Modal>
-
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -193,13 +220,16 @@ function App({ accountId }: AppProps | any) {
               <Button
                 variant="primary"
                 onClick={() => handleDeleteTransaction(editingTransaction)}
+                disabled={loading}
               >
-                Deletar
+                {loading ? "Aguarde" : "Deletar"}
               </Button>
             </div>
           </>
         )}
       </Modal>
+
+      <Toaster position="top-right" richColors closeButton />
     </section>
   );
 }

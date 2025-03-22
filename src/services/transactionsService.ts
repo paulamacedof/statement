@@ -11,7 +11,7 @@ export const getTransactions = async (
         Authorization: `Bearer ${token}`,
       },
     });
-    return request.data.data.transactions;
+    return request.data.data;
   } catch (error) {
     console.error("Error getting statement:", error);
     throw error;
