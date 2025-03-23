@@ -1,4 +1,3 @@
-// craco.config.js (no projeto statement)
 const { ModuleFederationPlugin } = require("webpack").container;
 
 module.exports = {
@@ -15,7 +14,6 @@ module.exports = {
           name: "statement",
           filename: "remoteEntry.js",
           exposes: {
-            // Exponha o componente principal, por exemplo o App, para o container
             "./App": "./src/App",
           },
           shared: {
@@ -29,6 +27,11 @@ module.exports = {
         })
       );
       return webpackConfig;
+    },
+  },
+  style: {
+    postcss: {
+      mode: "file",
     },
   },
 };
