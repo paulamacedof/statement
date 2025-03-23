@@ -17,6 +17,7 @@ import {
 import { AccountResponse } from "./models/account";
 import { toast, Toaster } from "sonner";
 import { Piechart } from "./components/Piechart";
+import { FaPaperclip } from "react-icons/fa6";
 
 interface AppProps {
   account: AccountResponse;
@@ -91,11 +92,13 @@ function App({ account }: AppProps | any) {
   };
 
   const handleUpdateTransaction = async (transaction: TransactionRequest) => {
+    setLoading(true);
     try {
       const payload = {
         type: transaction.type,
         value: transaction.value,
         accountId: account.id,
+        anexo: transaction.anexo,
       };
 
       setTransactions(
@@ -115,7 +118,32 @@ function App({ account }: AppProps | any) {
     } finally {
       setEditingTransaction(null);
       setIsEditModalOpen(false);
+      setLoading(false);
     }
+  };
+
+  const downloadAttachment = (transaction: TransactionResponse) => {
+    const base64 = transaction.anexo;
+    if (!base64) return null;
+
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Uint8Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const blob = new Blob([byteNumbers], { type: "image/png" });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `comprovante_${transaction.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(blobUrl);
   };
 
   return (
@@ -153,6 +181,16 @@ function App({ account }: AppProps | any) {
                 </p>
 
                 <div className="flex gap-4 text-lg ml-auto">
+                  {transaction.anexo && transaction.anexo.length && (
+                    <p
+                      className="flex items-center gap-1 font-roboto-mono text-sm underline-offset-2 transition-all hover:underline hover:text-green-500"
+                      role="button"
+                      onClick={() => downloadAttachment(transaction)}
+                    >
+                      <FaPaperclip />
+                      anexo
+                    </p>
+                  )}
                   <FaEdit
                     className="text-green-500 transition hover:text-green-400"
                     title="Editar"
@@ -177,15 +215,19 @@ function App({ account }: AppProps | any) {
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         {editingTransaction && (
           <AddTransactionForm
+            loading={loading}
+            transactionId={editingTransaction.id}
             initialType={editingTransaction.type as TransactionType}
             initialAmount={editingTransaction.value}
+            initialFile={editingTransaction.anexo}
             title="Editar Transação"
             buttonText="Salvar Alterações"
             onSubmit={(transaction) =>
               handleUpdateTransaction({
-                ...transaction,
+                type: transaction.type,
                 accountId: account.id,
                 value: transaction.amount,
+                anexo: transaction.anexo,
               })
             }
           />
@@ -228,7 +270,6 @@ function App({ account }: AppProps | any) {
           </>
         )}
       </Modal>
-
       <Toaster position="top-right" richColors closeButton />
     </section>
   );
